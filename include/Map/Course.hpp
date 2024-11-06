@@ -73,8 +73,8 @@ class Course : public SysObject {
     void func_ov00_0207cbe8(s32 param_2);
     unk8 func_ov00_0207cc24(s32 param_2);
     unk32 FindMapData_Unk_08(unk32 map);
-    void GetMCSFilePath(unk32 buf, s32 fileIndex, unk32 fileType);
-    void GetMRCFilePath(unk32 param_2, unk32 buf, unk32 param_4);
+    void GetMCSFilePath(char* buf, s32 fileIndex, unk32 fileType);
+    void GetMRCFilePath(unk32 param_2, char* buf, unk32 fileType);
     void func_ov00_0207ce20(unk32 param_2, unk32 param_3, char *param_4, unk32 param_5);
     void func_ov00_0207ce4c(s32 param_2, s32 param_3, unk32 param_4, char *param_5, unk32 param_6);
     bool func_ov00_0207d404(s32 param_2, unk32 param_3, unk32 param_4);
