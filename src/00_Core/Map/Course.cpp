@@ -1,13 +1,5 @@
 #include "Map/Course.hpp"
 
-/*
- * Missing functions:
- *
- * SBORROW4(s32, s32)
- * SoftDivideMod(s32, s32)
- * CoDivide64By32(s32, s32)
- */
-
 typedef unsigned char byte;
 
 void Course::GetDungeonProgress(CourseProgress *progress)
@@ -24,8 +16,9 @@ void Course::GetDungeonProgress(CourseProgress *progress)
     return;
 }
 
+unk32 func_ov000_020972e4(s32 a, s32 b, s32 c);
 
-void Course::func_ov00_0207ca28(s32 param_2, unk32 param_3, unk32 param_4) {
+void Course::func_ov00_0207ca28(s32 r0, unk32 r1, unk32 r2) {
 
 }
 
@@ -194,19 +187,18 @@ bool Course::func_ov00_0207d404(s32 param_2, unk32 param_3, unk32 param_4) {
 }
 
 bool Course::IsCurrentMapInMainGrid() {
-  return IsInMainGrid(mCurrMapPos.x, mCurrMapPos.y);
+  return IsInMainGrid((u8)mCurrMapPos.x, (u8)mCurrMapPos.y);
 }
 
 bool Course::IsInMainGrid(s32 x, s32 y) {
-  u32 uVar1;
-  
-  if (mType == false) {
+  if (mUnk_25c == 0) {
     return true;
   }
-  uVar1 = (u32)(mMainGrid).x;
-  if (((((int)uVar1 <= x) && (x < (int)(uVar1 + (mMainGridSize).x))) &&
-      (uVar1 = (u32)(mMainGrid).y, (int)uVar1 <= y)) &&
-     (y < (int)(uVar1 + (mMainGridSize).y))) {
+
+  u32 uVar1 = (u8)(mMainGrid).x;
+  if (((((int)uVar1 <= x) && (x < (int)(uVar1 + (u8)mMainGridSize.x))) &&
+      (uVar1 = (u8)(mMainGrid).y, (int)uVar1 <= y)) &&
+     (y < (int)(uVar1 + (u8)mMainGridSize.y))) {
     return true;
   }
   return false;
@@ -217,7 +209,7 @@ bool Course::IsMapInMainGrid(u32 map) {
   Vec2b local_10;
 
   FindMapGridPos(&local_10,this,map);
-  bVar1 = IsInMainGrid(local_10.x,local_10.y);
+  bVar1 = IsInMainGrid((u8)local_10.x,(u8)local_10.y);
   return bVar1;
 }
 
@@ -242,12 +234,8 @@ bool Course::GetMapScreenPos(s32 map, s32 *x, s32 *y) {
     if (minGridDim < bVar1) {
       minGridDim = bVar1;
     }
-                    /* 256 = screen width */
-    //xPixelsPerMap = SoftDivideMod(256,minGridDim);
     *x = xPixelsPerMap * (((u32)_local_18 & 0xff) - (u32)(this->mMainGrid).x) +
          this->mScreenMapOffsetX;
-                    /* 192 = screen height */
-    //yPixelsPerMap = SoftDivideMod(192,minGridDim);
     *y = yPixelsPerMap * (((u32)_local_18 >> 8 & 0xff) - (u32)(this->mMainGrid).y) +
          this->mScreenMapOffsetY;
     return true;
@@ -256,18 +244,17 @@ bool Course::GetMapScreenPos(s32 map, s32 *x, s32 *y) {
 }
 
 u32 Course::GetScreenMapCellSizeX() {
-  u32 uVar1;
-  u32 minGridDim;
-  
-  minGridDim = mMainGridSize.x;
-  uVar1 = mMainGridSize.y;
-  if (minGridDim < uVar1) {
-    minGridDim = uVar1;
+  u32 r0 = (u8)mMainGridSize.x;
+  u32 r1 = (u8)mMainGridSize.y;
+
+  if (r1 > r0) {
+    r0 = r1;
   }
-                    /* 256.0 / minGridDim */
-  //minGridDim = CoDivide64By32(0x100000,minGridDim << 0xc);
-  //minGridDim = CoDivide64By32(minGridDim,0x40000);
-  return minGridDim;
+
+  r1 <<= 0xC;
+  //r0 = 0x100000;
+
+  return r1 + r0;
 }
 
 u32 Course::GetScreenMapCellSizeY() {
@@ -300,8 +287,9 @@ bool Course::IsAdjacentMapOnMainGrid(unk32 dir) {
   u32 x;
   u32 y;
   
-  x = (u32)(mCurrMapPos).x;
-  y = (u32)(mCurrMapPos).y;
+  x = (u8)(mCurrMapPos).x;
+  y = (u8)(mCurrMapPos).y;
+
   switch(dir) {
   case 0:
     x = x + 1;
@@ -323,42 +311,27 @@ bool Course::IsAdjacentMapOnMainGrid(unk32 dir) {
   return bVar1;
 }
 
-bool Course::HasGridMap(s32 x, s32 y) {
-  int iVar1;
-  bool bVar2;
-  
-  if (-1 < x && -1 < y) {
-    //bVar2 = SBORROW4(x,10);
-    iVar1 = x + -10;
-    if (x < 10) {
-      //bVar2 = SBORROW4(y,10);
-      iVar1 = y + -10;
-    }
-    if (iVar1 < 0 != bVar2) {
-      return mMapGrid[x][y] != -1;
-    }
+bool Course::HasGridMap(s32 r1, s32 r2) {
+  if ((0 > r1 || 0 > r2) || (r1 >= 0xa || r2 >= 0xa)) {
+    return false;
   }
-  return false;
+  return (u8)mMapGrid[r1][r2] != 0xff;
 }
 
 unk8 Course::GetAdjacentMap(unk32 dir) {
-  bool bVar1;
-  u32 y;
-  u32 x;
-  
-  bVar1 = IsAdjacentMapOnMainGrid(dir);
-  if (bVar1) {
-    y = GetAdjacentMapY(dir);
-    x = GetAdjacentMapX(dir);
+
+  if (IsAdjacentMapOnMainGrid(dir)) {
+    u32 x = GetAdjacentMapX(dir);
+    u32 y = GetAdjacentMapY(dir);
+    
     return mMapGrid[x][y];
   }
   return 0xff;
 }
 
 u32 Course::GetAdjacentMapX(s32 ir) {
-  u32 uVar1;
-  
-  uVar1 = mCurrMapPos.x;
+
+  u32 uVar1 = (u8)mCurrMapPos.x;
   if (ir != 0) {
     if (ir == 1) {
       uVar1 = uVar1 - 1;
@@ -369,9 +342,8 @@ u32 Course::GetAdjacentMapX(s32 ir) {
 }
 
 u32 Course::GetAdjacentMapY(s32 dir) {
-  u32 y;
-  
-  y = mCurrMapPos.y;
+
+  u32 y = (u8)mCurrMapPos.y;
   if (dir != 2) {
     if (dir == 3) {
       y = y - 1;
@@ -382,22 +354,18 @@ u32 Course::GetAdjacentMapY(s32 dir) {
 }
 
 u16 Course::FindCurrentMapData_Unk_04() {
-  MapData *pMVar1;
-  
-  pMVar1 = FindCurrentMapData();
-  return pMVar1->mUnk_04;
+  return FindCurrentMapData() -> mUnk_04;
 }
 
 
 u32 Course::FindMapData_Unk_04(unk32 param_2) {
-  MapData *iVar1;
-  u32 uVar1;
-  
-  iVar1 = FindMapData(param_2);
-  if (iVar1 != NULL) {
-    uVar1 = iVar1->mUnk_04;
+
+  MapData* mapData = FindMapData(param_2);
+  if (mapData == NULL) {
+    return 0xffff;
+  } else {
+    return mapData -> mUnk_04;
   }
-  return uVar1;
 }
 
 unk32 Course::FindMapData_Unk_0c(unk32 map) {
@@ -445,87 +413,44 @@ bool Course::SetFlag1(u32 index) {
 }
 
 void Course::SetMapDataFlag0(unk32 index, bool value) {
-  MapData *pMVar1;
-  
-  pMVar1 = FindCurrentMapData();
-  //MapData::SetFlag0(pMVar1,index,value);
+  FindCurrentMapData() -> SetFlag0(index,value);
 }
 
-bool Course::GetMapDataFlag0(unk32 param_2) {
-  unk32 uVar1;
-  MapData *pMVar2;
-  
-  pMVar2 = FindCurrentMapData();
-  //uVar1 = MapData::GetFlag0(pMVar2,param_2);
-  return (bool)uVar1;
+bool Course::GetMapDataFlag0(unk32 index) {
+  return FindCurrentMapData() -> GetFlag0(index);
 }
 
-void Course::SetMapDataFlag1(unk32 param_2, bool param_3) {
-  MapData *pMVar1;
-  
-  pMVar1 = FindCurrentMapData();
-  //MapData::SetFlag1(pMVar1,param_2,param_3);
+void Course::SetMapDataFlag1(unk32 index, bool value) {
+  FindCurrentMapData() -> SetFlag1(index,value);
 }
 
-bool Course::GetMapDataFlag1(unk32 param_2) {
-  unk32 uVar1;
-  MapData *pMVar2;
-  
-  pMVar2 = FindCurrentMapData();
-  //uVar1 = MapData::GetFlag1(pMVar2,param_2);
-  return (bool)uVar1;
+bool Course::GetMapDataFlag1(unk32 index) {
+  return FindCurrentMapData() -> GetFlag1(index);
 }
 
-void Course::SetMapDataFlag2(unk32 param_2, bool param_3) {
-  MapData *pMVar1;
-  
-  pMVar1 = FindCurrentMapData();
-  //MapData::SetFlag2(pMVar1,param_2,param_3);
+void Course::SetMapDataFlag2(unk32 index, bool value) {
+  FindCurrentMapData() -> SetFlag2(index,value);
 }
 
-bool Course::GetMapDataFlag2(unk32 param_2) {
-  unk32 uVar1;
-  MapData *pMVar2;
-  
-  pMVar2 = FindCurrentMapData();
-  //uVar1 = MapData::GetFlag2(pMVar2,param_2);
-  return (bool)uVar1;
+bool Course::GetMapDataFlag2(unk32 index) {
+  return FindCurrentMapData() -> GetFlag2(index);
 }
 
-void Course::SetMapDataFlag3(unk32 param_2, bool param_3) {
-  MapData *pMVar1;
-  
-  pMVar1 = FindCurrentMapData();
-  //MapData::SetFlag3(pMVar1,param_2,param_3);
-  return;
+void Course::SetMapDataFlag3(unk32 index, bool value) {
+  FindCurrentMapData() -> SetFlag3(index,value);
 }
 
-bool Course::GetMapDataFlag3(unk32 param_2) {
-  unk32 uVar1;
-  MapData *pMVar2;
-  
-  pMVar2 = FindCurrentMapData();
-  //uVar1 = MapData::GetFlag3(pMVar2,param_2);
-  return (bool)uVar1;
+bool Course::GetMapDataFlag3(unk32 index) {
+  return FindCurrentMapData() -> GetFlag3(index);
 }
 
-void Course::SetMapDataFlag4(unk32 param_2, unk32 param_3) {
-  MapData *pMVar1;
-  
-  pMVar1 = FindCurrentMapData();
-  //MapData::SetFlag4(pMVar1,param_2,param_3._0_1_);
-  return;
+void Course::SetMapDataFlag4(unk32 index, unk32 value) {
+  FindCurrentMapData() -> SetFlag4(index,value);
 }
 
-bool Course::GetMapDataFlag4(unk32 param_2) {
-  unk32 uVar1;
-  MapData *pMVar2;
-  
-  pMVar2 = FindCurrentMapData();
-  //uVar1 = MapData::GetFlag4(pMVar2,param_2);
-  return (bool)uVar1;
+bool Course::GetMapDataFlag4(unk32 index) {
+  return FindCurrentMapData() -> GetFlag4(index);
 }
-
 
 MapData *Course::FindMapData(u32 map) {
   MapData *pMVar1;

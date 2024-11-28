@@ -25,4 +25,17 @@ public:
     /* 50 */ unk32 mUnk_50;
     /* 54 */ unk32 mUnk_54;
     /* 58 */
+
+    void SetFlag0(unk32 index, bool value);
+    bool GetFlag0(unk32 index);
+    void SetFlag1(unk32 index, bool value);
+    bool GetFlag1(unk32 index);
+    void SetFlag2(unk32 index, bool value);
+    bool GetFlag2(unk32 index);
+    void SetFlag3(unk32 index, bool value);
+    bool GetFlag3(unk32 index);
+
+    // Flag4 declarations are incorrect
+    void SetFlag4(unk32 index, bool value);
+    bool GetFlag4(unk32 index);
 };
