@@ -34,8 +34,13 @@ char *Course::SetCourseName(char *src)
   return mName;
 }
 
-void Course::func_ov00_0207ca78(unk32 param_2, unk8 param_3, unk32 param_4) {
+void func_ov000_020a3510(Course_Unk_c8 *param_0, unk32 param_1, unk32 param_2);
 
+// u32 course
+void Course::func_ov00_0207ca78(unk32 course, unk8 r1, unk32 r2) {
+  MapData *mapData = FindMapData(course);
+  mapData -> mUnk_00 = r2;
+  func_ov000_020a3510(mUnk_0c8, mapData -> mUnk_08, 1);
 }
 
 bool Course::func_ov00_0207caa8(s32 param_2, unk32 *param_3, unk8 *param_4) {
@@ -47,30 +52,21 @@ unk32 Course::func_ov00_0207cb30(s32 param_2) {
 }
 
 
-void Course::FindMapGridPos(Vec2b *pos, Course *param_2, u32 map)
+void Course::FindMapGridPos(Vec2b *pos, Course *course, u32 map)
 {
-  byte bVar1;
-  int y;
-  Course *course_unk20;
-  int x;
-  
-  x = 0;
-  course_unk20 = param_2;
-  do {
-    y = 0;
-    do {
-      if (map == (byte)course_unk20->mMapGrid[0][y]) {
-        pos->x = (byte)x;
-        pos->y = (byte)y;
+  for (int x = 0; x < 10; x++) {
+    for (int y = 0; y < 10; y++) {
+      if (map == (u8)course->mMapGrid[0][y]) {
+        pos->x = (u8)x;
+        pos->y = (u8)y;
         return;
       }
-      y = y + 1;
-    } while (y < 10);
-    x = x + 1;
-    course_unk20 = (Course *)((int)&course_unk20->mUnk_008 + 2);
-  } while (x < 10);
-  bVar1 = (param_2->mCurrMapPos).y;
-  pos->x = (param_2->mCurrMapPos).x;
+    }
+    course = (Course *)((int)&course->mUnk_008 + 2);
+  }
+
+  byte bVar1 = (course->mCurrMapPos).y;
+  pos->x = (course->mCurrMapPos).x;
   pos->y = bVar1;
   return;
 }
@@ -382,8 +378,12 @@ unk32 Course::FindMapData_Unk_0c(unk32 map) {
   return uVar1;
 }
 
+unk32 data_027e103c;
+void func_ov000_020cf414(CourseType type, u16 b, unk32 *c);
+
 void Course::func_ov00_0207d7bc() {
 
+  func_ov000_020cf414(mType, FindCurrentMapData() -> mUnk_04, &data_027e103c);
 }
 
 
@@ -453,19 +453,14 @@ bool Course::GetMapDataFlag4(unk32 index) {
 }
 
 MapData *Course::FindMapData(u32 map) {
-  MapData *pMVar1;
-  int i;
-  
-  i = 0;
-  if (mNumMaps != 0) {
-    do {
-      pMVar1 = mMapData[i];
-      if ((pMVar1 != NULL) && (map == pMVar1->mMap)) {
-        return pMVar1;
-      }
-      i = i + 1;
-    } while (i < (int)(unsigned int)mNumMaps);
+
+  for (int i = 0; i < mNumMaps; i++) {
+    MapData *pMVar1 = mMapData[i];
+    if ((pMVar1 != NULL) && (map == (u8)pMVar1->mMap)) {
+      return pMVar1;
+    }
   }
+  
   return NULL;
 }
 
